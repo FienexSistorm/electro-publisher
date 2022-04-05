@@ -1,11 +1,11 @@
 {
   "name": "electron-demo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "bla bla",
   "main": "electro-main.js",
   "author": "Sophatel",
   "license": "MIT",
-  "repository": "https://github.com/FienexSistorm/electron-app.git",
+  "repository": "git@github.com:FienexSistorm/electro-publisher.git",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -15,7 +15,7 @@
     "package-win": "electron-packager ./dist --overwrite  --platform=win32 --version-string.ProductName=\"Demo Sample Application\"",
     "dir": "electron-builder --dir",
     "pack": "elctron-builder --dir",
-    "publish": "electron-builder -p onTag",
+    "electro-publish": "electron-builder -p always",
     "dist": "electron-builder"
   },
   "private": false,
@@ -54,9 +54,11 @@
   "build": {
     "appId": "com.sophatel.winpharm",
     "productName": "Electron Demo",
-    "buildVersion": "1.0.1",
+    "buildVersion": "1.0.2",
     "target": "nsis",
-    "win": "github",
+    "win": {
+      "target": "nsis"
+    },
     "directories": {
       "output": "build"
     },
