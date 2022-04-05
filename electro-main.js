@@ -1,122 +1,147 @@
-const { app, screen, BrowserWindow, globalShortcut, Menu, } = require("electron");
-const { autoUpdater } = require("electron-updater");
+// This is free and unencumbered software released into the public domain.
+// See LICENSE for details
 
-const path = require("path");
+const {app, BrowserWindow, Menu} = require('electron');
+const log = require('electron-log');
+const {autoUpdater} = require("electron-updater");
 
-let mainWindow;
-
-
-
-//-----------------------------------------
-// -----------------LOGGING---------------
-//-----------------------------------------
+//-------------------------------------------------------------------
+// Logging
+//
+// THIS SECTION IS NOT REQUIRED
+//
+// This logging setup is not required for auto-updates to work,
+// but it sure makes debugging easier :)
+//-------------------------------------------------------------------
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
-/*-------------- END OF LOGGING----------- */
 
-
-const createWindow = () => {
-  // getting the size of the screen
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
-
-  mainWindow = new BrowserWindow({
-    width: width,
-    height: height,
-    title: "Electropharm",
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      webSecurity: false,
-      devTools: true,
-      nodeIntegration: true,
-    },
-  });
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
+//-------------------------------------------------------------------
+// Define the menu
+//
+// THIS SECTION IS NOT REQUIRED
+//-------------------------------------------------------------------
+let template = []
+if (process.platform === 'darwin') {
+  // OS X
+  const name = app.getName();
+  template.unshift({
+    label: name,
+    submenu: [
       {
-        label: "Refresh",
-        accelerator: "Ctrl+R",
-        click() {
-          BrowserWindow.getFocusedWindow().reload();
-          mainWindow.loadFile("dist/electronDemo/index.html");
-        },
+        label: 'About ' + name,
+        role: 'about'
       },
       {
-        label: "Inspect",
-        accelerator: "Shift+CommandOrControl+I",
-        click() {
-          console.log("inspected");
-          mainWindow.webContents.openDevTools();
-        },
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        click() { app.quit(); }
       },
-    ])
-  );
-  mainWindow.loadFile("dist/electronDemo/index.html");
-
-  mainWindow.on("resize", () => {
-    console.log("resizing");
-  });
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
-};
-
-var reload = () => {
-  BrowserWindow.getFocusedWindow().reload();
-  mainWindow.loadFile("dist/electronDemo/index.html");
-};
+    ]
+  })
+}
 
 
-
-
-
-
-
-//// CREATING THE APPLICATION FRAME
-app.whenReady()
-  .then(() => {
-    globalShortcut.register("Shift+CommandOrControl+I", () => {
-      mainWindow.webContents.openDevTools();
-    });
-  }).then(() => {
-    createWindow();
-    app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-  });
-app.on("session-created", () => console.log("session created"));
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    console.log("closed");
-  }
-});
-
-/*----------------------------------------------------
-                    AUTO UPDATER
-----------------------------------------------------*/
+//-------------------------------------------------------------------
+// Open a window that displays the version
+//
+// THIS SECTION IS NOT REQUIRED
+//
+// This isn't required for auto-updates to work, but it's easier
+// for the app to show a window than to have to click "About" to see
+// that updates are working.
+//-------------------------------------------------------------------
+let win;
 
 function sendStatusToWindow(text) {
   log.info(text);
   win.webContents.send('message', text);
 }
+function createDefaultWindow() {
+  win = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+  win.webContents.openDevTools();
+  win.on('closed', () => {
+    win = null;
+  });
+  win.loadURL(`file://${__dirname}/src/index.html#v${app.getVersion()}`);
+  return win;
+}
+autoUpdater.on('checking-for-update', () => {
+  sendStatusToWindow('Checking for update...');
+})
+autoUpdater.on('update-available', (info) => {
+  sendStatusToWindow('Update available.');
+})
+autoUpdater.on('update-not-available', (info) => {
+  sendStatusToWindow('Update not available.');
+})
+autoUpdater.on('error', (err) => {
+  sendStatusToWindow('Error in auto-updater. ' + err);
+})
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  sendStatusToWindow(log_message);
+})
+autoUpdater.on('update-downloaded', (info) => {
+  sendStatusToWindow('Update downloaded');
+});
+app.on('ready', function() {
+  // Create the Menu
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 
-ipcMain.on("app_version", (event) => {
-  event.sender.send("app_version", { version: app.getVersion() });
+  createDefaultWindow();
+});
+app.on('window-all-closed', () => {
+  app.quit();
 });
 
-autoUpdater.on("update-available", () => {
-  console.log("Main, an update is available");
-  mainWindow.webContents.send("update_available");
+//
+// CHOOSE one of the following options for Auto updates
+//
+
+//-------------------------------------------------------------------
+// Auto updates - Option 1 - Simplest version
+//
+// This will immediately download an update, then install when the
+// app quits.
+//-------------------------------------------------------------------
+app.on('ready', function()  {
+  autoUpdater.checkForUpdatesAndNotify();
 });
 
-autoUpdater.on("update-downloaded", () => {
-  console.log("Main, and update is being downloaded");
-  mainWindow.webContents.send("update_downloaded");
-});
-
-ipcMain.on("restart_app", () => {
-  autoUpdater.quitAndInstall();
-});
+//-------------------------------------------------------------------
+// Auto updates - Option 2 - More control
+//
+// For details about these events, see the Wiki:
+// https://github.com/electron-userland/electron-builder/wiki/Auto-Update#events
+//
+// The app doesn't need to listen to any events except `update-downloaded`
+//
+// Uncomment any of the below events to listen for them.  Also,
+// look in the previous section to see them being used.
+//-------------------------------------------------------------------
+// app.on('ready', function()  {
+//   autoUpdater.checkForUpdates();
+// });
+// autoUpdater.on('checking-for-update', () => {
+// })
+// autoUpdater.on('update-available', (info) => {
+// })
+// autoUpdater.on('update-not-available', (info) => {
+// })
+// autoUpdater.on('error', (err) => {
+// })
+// autoUpdater.on('download-progress', (progressObj) => {
+// })
+// autoUpdater.on('update-downloaded', (info) => {
+//   autoUpdater.quitAndInstall();
+// })

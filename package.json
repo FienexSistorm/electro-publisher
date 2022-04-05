@@ -1,6 +1,6 @@
 {
   "name": "electron-demo",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "bla bla",
   "main": "electro-main.js",
   "author": "Sophatel",
@@ -28,6 +28,7 @@
     "@angular/platform-browser": "~12.2.0",
     "@angular/platform-browser-dynamic": "~12.2.0",
     "@angular/router": "~12.2.0",
+    "electron-log": "^4.4.6",
     "electron-updater": "^4.6.5",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
@@ -54,7 +55,7 @@
   "build": {
     "appId": "com.sophatel.winpharm",
     "productName": "Electron Demo",
-    "buildVersion": "1.0.2",
+    "buildVersion": "1.0.4",
     "target": "nsis",
     "win": {
       "target": "nsis"

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>ElectronDemo</title>
@@ -7,12 +8,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
+
 <body>
+  Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam dolore doloribus, repellat omnis dolorem excepturi et dolorum.
   <app-root></app-root>
+  <section style="position: absolute; top: 10; right: 15;">
+
+    Current versionnnn: <span id="version">vX.Y.Z</span>
+    <div id="messages"></div>
+
+  </section>
+    <script>
+      // Display the current version
+      let version = window.location.hash.substring(1);
+      document.getElementById('version').innerText = version;
+
+      // Listen for messages
+      const {
+        ipcRenderer
+      } = require('electron');
+      ipcRenderer.on('message', function (event, text) {
+        console.log(text);
+        var container = document.getElementById('messages');
+        var message = document.createElement('div');
+        message.innerHTML = text;
+        container.appendChild(message);
+      })
+  </script>
 </body>
 
-<script src="./../update.js"></script>
-<script>
-  console.log("initiated");
-</script>
 </html>
