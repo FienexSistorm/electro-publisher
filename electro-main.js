@@ -69,7 +69,8 @@ function createDefaultWindow() {
   win.on('closed', () => {
     win = null;
   });
-  win.loadURL(`file://${__dirname}/src/index.html#v${app.getVersion()}`);
+  win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
+  // win.loadFile("./dist/electronDemo/index.html");
   return win;
 }
 autoUpdater.on('checking-for-update', () => {
@@ -92,12 +93,13 @@ autoUpdater.on('download-progress', (progressObj) => {
 })
 autoUpdater.on('update-downloaded', (info) => {
   sendStatusToWindow('Update downloaded');
+  autoUpdater.quitAndInstall();
 });
 app.on('ready', function() {
   // Create the Menu
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-
+  console.log(app.getVersion())
   createDefaultWindow();
 });
 app.on('window-all-closed', () => {

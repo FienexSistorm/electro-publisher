@@ -10,31 +10,26 @@
 </head>
 
 <body>
-  Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam dolore doloribus, repellat omnis dolorem excepturi et dolorum.
-  <app-root></app-root>
-  <section style="position: absolute; top: 10; right: 15;">
-
+  <div style="position: absolute; top: 0;">
     Current versionnnn: <span id="version">vX.Y.Z</span>
     <div id="messages"></div>
 
-  </section>
-    <script>
-      // Display the current version
-      let version = window.location.hash.substring(1);
-      document.getElementById('version').innerText = version;
-
-      // Listen for messages
-      const {
-        ipcRenderer
-      } = require('electron');
-      ipcRenderer.on('message', function (event, text) {
-        console.log(text);
-        var container = document.getElementById('messages');
-        var message = document.createElement('div');
-        message.innerHTML = text;
-        container.appendChild(message);
-      })
-  </script>
+  </div>
+  <app-root style="margin-top: 300px;"></app-root>
 </body>
+<script>
+  // Display the current version
+  let version = window.location.hash.substring(1);
+  document.getElementById('version').innerText = version;
 
+  // Listen for messages
+  const { ipcRenderer } = require('electron');
+  ipcRenderer.on('message', function (event, text) {
+    console.log(text);
+    var container = document.getElementById('messages');
+    var message = document.createElement('div');
+    message.innerHTML = text;
+    container.appendChild(message);
+  })
+</script>
 </html>

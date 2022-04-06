@@ -1,6 +1,6 @@
 {
   "name": "electron-demo",
-  "version": "1.0.4",
+  "version": "1.0.2",
   "description": "bla bla",
   "main": "electro-main.js",
   "author": "Sophatel",
@@ -12,6 +12,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "start:electron": "ng build --base-href ./ && electron .",
+    "start:electron-only": "electron .",
     "package-win": "electron-packager ./dist --overwrite  --platform=win32 --version-string.ProductName=\"Demo Sample Application\"",
     "dir": "electron-builder --dir",
     "pack": "elctron-builder --dir",
@@ -30,6 +31,7 @@
     "@angular/router": "~12.2.0",
     "electron-log": "^4.4.6",
     "electron-updater": "^4.6.5",
+    "ngx-electron": "^2.2.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.3.0",
     "uaup-js": "0.0.22",
@@ -55,7 +57,7 @@
   "build": {
     "appId": "com.sophatel.winpharm",
     "productName": "Electron Demo",
-    "buildVersion": "1.0.4",
+    "buildVersion": "1.0.2",
     "target": "nsis",
     "win": {
       "target": "nsis"
@@ -65,7 +67,8 @@
     },
     "nsis": {
       "allowToChangeInstallationDirectory": true,
-      "oneClick": false
+      "oneClick": false,
+      "perMachine": true
     }
   }
 }
