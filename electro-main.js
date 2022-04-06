@@ -1,63 +1,44 @@
-// This is free and unencumbered software released into the public domain.
-// See LICENSE for details
-
-const {app, BrowserWindow, Menu} = require('electron');
+const {
+  app,
+  BrowserWindow,
+  Menu,
+} = require('electron');
 const log = require('electron-log');
-const {autoUpdater} = require("electron-updater");
+const {
+  autoUpdater
+} = require("electron-updater");
 
 //-------------------------------------------------------------------
-// Logging
-//
-// THIS SECTION IS NOT REQUIRED
-//
-// This logging setup is not required for auto-updates to work,
-// but it sure makes debugging easier :)
+
 //-------------------------------------------------------------------
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
 
-//-------------------------------------------------------------------
-// Define the menu
-//
-// THIS SECTION IS NOT REQUIRED
-//-------------------------------------------------------------------
-let template = []
-if (process.platform === 'darwin') {
-  // OS X
-  const name = app.getName();
-  template.unshift({
-    label: name,
-    submenu: [
-      {
-        label: 'About ' + name,
-        role: 'about'
-      },
-      {
-        label: 'Quit',
-        accelerator: 'Command+Q',
-        click() { app.quit(); }
-      },
-    ]
-  })
-}
 
 
-//-------------------------------------------------------------------
-// Open a window that displays the version
-//
-// THIS SECTION IS NOT REQUIRED
-//
-// This isn't required for auto-updates to work, but it's easier
-// for the app to show a window than to have to click "About" to see
-// that updates are working.
-//-------------------------------------------------------------------
 let win;
+let progressInterval;
 
 function sendStatusToWindow(text) {
   log.info(text);
   win.webContents.send('message', text);
 }
+
+function showProgress(percent) {
+  const INTERVAL_DELAY = 100 // ms
+  progressInterval = setInterval(() => {
+    if (percent < 1) {
+      percent += INCREMENT
+      win.setProgressBar(percent);
+    } else {
+      win.setProgressBar(-1);
+      clearInterval(progressInterval)
+    }
+  }, INTERVAL_DELAY)
+
+}
+
 function createDefaultWindow() {
   win = new BrowserWindow({
     webPreferences: {
@@ -65,6 +46,7 @@ function createDefaultWindow() {
       contextIsolation: false
     }
   });
+
   win.webContents.openDevTools();
   win.on('closed', () => {
     win = null;
@@ -85,65 +67,41 @@ autoUpdater.on('update-not-available', (info) => {
 autoUpdater.on('error', (err) => {
   sendStatusToWindow('Error in auto-updater. ' + err);
 })
+
 autoUpdater.on('download-progress', (progressObj) => {
+  showProgress(progressObj.percent);
   let log_message = "Download speed: " + progressObj.bytesPerSecond;
   log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
   log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
   sendStatusToWindow(log_message);
 })
+
 autoUpdater.on('update-downloaded', (info) => {
   sendStatusToWindow('Update downloaded');
   autoUpdater.quitAndInstall();
 });
-app.on('ready', function() {
-  // Create the Menu
+
+app.on('ready', function () {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
   console.log(app.getVersion())
   createDefaultWindow();
 });
+
 app.on('window-all-closed', () => {
   app.quit();
 });
 
-//
-// CHOOSE one of the following options for Auto updates
-//
-
-//-------------------------------------------------------------------
-// Auto updates - Option 1 - Simplest version
-//
-// This will immediately download an update, then install when the
-// app quits.
-//-------------------------------------------------------------------
-app.on('ready', function()  {
+app.on('ready', function () {
   autoUpdater.checkForUpdatesAndNotify();
 });
 
-//-------------------------------------------------------------------
-// Auto updates - Option 2 - More control
-//
-// For details about these events, see the Wiki:
-// https://github.com/electron-userland/electron-builder/wiki/Auto-Update#events
-//
-// The app doesn't need to listen to any events except `update-downloaded`
-//
-// Uncomment any of the below events to listen for them.  Also,
-// look in the previous section to see them being used.
-//-------------------------------------------------------------------
-// app.on('ready', function()  {
-//   autoUpdater.checkForUpdates();
-// });
-// autoUpdater.on('checking-for-update', () => {
-// })
-// autoUpdater.on('update-available', (info) => {
-// })
-// autoUpdater.on('update-not-available', (info) => {
-// })
-// autoUpdater.on('error', (err) => {
-// })
-// autoUpdater.on('download-progress', (progressObj) => {
-// })
-// autoUpdater.on('update-downloaded', (info) => {
-//   autoUpdater.quitAndInstall();
-// })
+
+/**
+ * TODO:
+ * 1- Checking the existance of an update before rendering the page
+ * 2- If anupdate has beeb deteced, it should no render the index page itself, but it must show a page holding informations about the update
+ * 3- (OTHER OPTION) Try using quiet install instead of showing the page of installation
+ * 4- Main Objectif is to skip the installation steps in case of updates  (silent install)
+ *
+ */
