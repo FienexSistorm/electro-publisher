@@ -18,18 +18,7 @@
   <app-root style="margin-top: 300px;"></app-root>
 </body>
 <script>
-  // Display the current version
-  let version = window.location.hash.substring(1);
-  document.getElementById('version').innerText = version;
+  const {ipcRenderer, remote} = require('electron');
 
-  // Listen for messages
-  const { ipcRenderer } = require('electron');
-  ipcRenderer.on('message', function (event, text) {
-    console.log(text);
-    var container = document.getElementById('messages');
-    var message = document.createElement('div');
-    message.innerHTML = text;
-    container.appendChild(message);
-  })
 </script>
 </html>

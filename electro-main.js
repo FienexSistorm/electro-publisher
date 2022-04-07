@@ -1,6 +1,15 @@
-const {app,BrowserWindow,Menu} = require('electron');
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  ipcMain
+} = require('electron');
 const log = require('electron-log');
-const {autoUpdater} = require("electron-updater");
+const {
+  autoUpdater
+} = require("electron-updater");
+
+
 
 // Defining the log
 autoUpdater.logger = log;
@@ -46,6 +55,11 @@ function sendStatusToWindow(text) {
 function createDefaultWindow() {
   // setting up the window
   win = new BrowserWindow({
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#2f3241',
+      symbolColor: '#74b1be'
+    },
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -59,7 +73,9 @@ function createDefaultWindow() {
   win.on('closed', () => {
     win = null;
   });
-  win.loadURL(`file://${__dirname}/dist/loading.html`);
+  // win.loadURL(`file://${__dirname}/dist/loading.html`);
+
+  win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
   return win;
 }
 
@@ -109,6 +125,13 @@ autoUpdater.on('download-progress', (progressObj) => {
 autoUpdater.on('update-downloaded', (info) => {
   sendStatusToWindow('Update downloaded');
   autoUpdater.quitAndInstall(true, true);
+});
+
+
+ipcMain.on('get-version', (event, arg) => {
+
+
+	event.sender.send('get-version-replay', app.getVersion());
 });
 
 /**

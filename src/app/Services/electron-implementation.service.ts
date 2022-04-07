@@ -1,16 +1,20 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ElectronImplementationService {
 
-  constructor() {
+  constructor(zone: NgZone) {
+
+
 
   }
 
+  ngOnInit() {}
 
-  init(): void{
+  sendClick(): void {
 
   }
 }

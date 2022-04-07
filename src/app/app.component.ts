@@ -1,27 +1,31 @@
-import { Component } from '@angular/core';
-import { ElectronService } from 'ngx-electron';
+import { Component, OnInit } from '@angular/core';
 import { ElectronImplementationService } from './Services/electron-implementation.service';
+import { IpcRenderer } from 'electron';
 
+
+declare var ipcRenderer: IpcRenderer;
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'Auto update demo';
-
-  constructor(private electronService: ElectronService, private customServ: ElectronImplementationService){
-    this.versionCheck();
-    this.customServ.init();
+  appVersion = "";
+  display = false;
+  constructor(){
+    setInterval(() => {
+      this.display = true;
+    },100)
   }
 
-  versionCheck(): void{
-    console.log("checking the version of this application");
-  //   if (this.electronService.isElectronApp) {
-  //     console.log("this is an electron application");   // cannot resolve sendSync of null
-  // }
-  //   this.electronService.ipcRenderer.on("meesage", (event, text) => {
-  //     console.log(event,text);
-  //   });
+
+  ngOnInit(): void {
+    ipcRenderer.send('get-version');
+    ipcRenderer.on('get-version-replay', (event: any, arg: string) => {
+      console.log('ipc-receive: ' + arg);
+      this.appVersion = arg;
+    });
   }
+
 }
