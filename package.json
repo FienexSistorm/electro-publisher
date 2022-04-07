@@ -66,9 +66,9 @@
       "output": "build"
     },
     "nsis": {
-      "allowToChangeInstallationDirectory": true,
-      "oneClick": false,
-      "perMachine": true,
+      "allowToChangeInstallationDirectory": false,
+      "oneClick": true,
+      "perMachine": false,
       "installerLanguages": "fr-FR"
     }
   }
