@@ -1,7 +1,6 @@
-const { app, BrowserWindow, Menu, } = require('electron');
+const {app,BrowserWindow,Menu} = require('electron');
 const log = require('electron-log');
-const { autoUpdater } = require("electron-updater");
-
+const {autoUpdater} = require("electron-updater");
 
 // Defining the log
 autoUpdater.logger = log;
@@ -11,6 +10,30 @@ log.info('App starting...');
 
 // Declaring the window object
 let win;
+
+// template :: menu items
+let template = [{
+    label: "Quit",
+    click() {
+      console.log("Quit");
+      app.quit();
+    }
+  },
+  {
+    label: "Reluanch",
+    click() {
+      console.log("Relaunched");
+      app.relaunch();
+    }
+  },
+  {
+    label: "Exit",
+    click() {
+      console.log("Exit");
+      app.exit();
+    }
+  }
+];
 
 
 /**@method sendStatusToWindow to push messages to the window (the interface html page) */
@@ -30,6 +53,7 @@ function createDefaultWindow() {
     }
   });
 
+
   // opening the devtools on lunch
   win.webContents.openDevTools();
   win.on('closed', () => {
@@ -41,8 +65,8 @@ function createDefaultWindow() {
 
 
 app.on('ready', function () {
-  // const menu = Menu.buildFromTemplate(template);
-  // Menu.setApplicationMenu(menu);
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
   createDefaultWindow();
   console.log(app.getVersion())
   autoUpdater.checkForUpdatesAndNotify()
