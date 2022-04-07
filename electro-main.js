@@ -19,7 +19,9 @@ log.info('App starting...');
 
 // Declaring the window object
 let win;
-
+let loadingWin;
+//TODO: Create another window just for loading that will be closed when the mainwindow is rendered
+// you can simulate this effect by setting a timeout to initiate the second window
 // template :: menu items
 let template = [{
     label: "Quit",
@@ -55,19 +57,20 @@ function sendStatusToWindow(text) {
 function createDefaultWindow() {
   // setting up the window
   win = new BrowserWindow({
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#2f3241',
-      symbolColor: '#74b1be'
-    },
+    icon: "images/icon.svg",
+    modal: true,
+    // titleBarStyle: 'hidden',
+    // titleBarOverlay: {
+    //   color: '#2f3241',
+    //   symbolColor: '#74b1be'
+    // },,
+    parent: loadingWin,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       devTools: true
     }
   });
-
-
   // opening the devtools on lunch
   win.webContents.openDevTools();
   win.on('closed', () => {
@@ -80,10 +83,39 @@ function createDefaultWindow() {
 }
 
 
+function createLoadingWindow() {
+  // setting up the window
+  loadingWin = new BrowserWindow({
+    icon: "images/icon.svg",
+    width: 500,
+    height: 250,
+    frame:false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+  });
+  loadingWin.on('closed', () => {
+    loadingWin = null;
+  });
+
+  loadingWin.loadURL(`file://${__dirname}/dist/loading.html`);
+  return loadingWin;
+}
+
+
+
+
+
 app.on('ready', function () {
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-  createDefaultWindow();
+
+  createLoadingWindow();
+  setTimeout(() => {
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+    createDefaultWindow()
+  }, 5000);
+
   console.log(app.getVersion())
   autoUpdater.checkForUpdatesAndNotify()
 });
@@ -128,10 +160,10 @@ autoUpdater.on('update-downloaded', (info) => {
 });
 
 
+// Sanding the current version of the application when requested by the angular application via the 'get-version' listener
 ipcMain.on('get-version', (event, arg) => {
-
-
-	event.sender.send('get-version-replay', app.getVersion());
+  console.log("the request made with this comment", arg)
+  event.sender.send('get-version-replay', app.getVersion());
 });
 
 /**

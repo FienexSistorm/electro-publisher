@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
 
 
   ngOnInit(): void {
-    ipcRenderer.send('get-version');
+    ipcRenderer.send('get-version',"this is a call for the listener to get me the current version of the application");
     ipcRenderer.on('get-version-replay', (event: any, arg: string) => {
       console.log('ipc-receive: ' + arg);
       this.appVersion = arg;
