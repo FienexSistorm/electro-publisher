@@ -1,12 +1,14 @@
 const {
-  app,
-  BrowserWindow,
-  Menu,dialog,
-  ipcMain
+    app,
+    BrowserWindow,
+    Menu,
+    dialog,
+    ipcMain,
+    Tray
 } = require('electron');
 const log = require('electron-log');
 const {
-  autoUpdater
+    autoUpdater
 } = require("electron-updater");
 
 
@@ -23,51 +25,64 @@ let win;
 
 /**@method sendStatusToWindow to push messages to the window (the interface html page) */
 function sendStatusToWindow(text) {
-  log.info(text);
-  win.webContents.send('message', text);
+    log.info(text);
+    win.webContents.send('message', text);
 }
 
 /**@method createDefaultWindow return the configured window object */
 function createDefaultWindow() {
-  // setting up the window
-  win = new BrowserWindow({
-    icon: "images/icon.svg",
-    // titleBarStyle: 'hidden',
-    // titleBarOverlay: {
-    //   color: '#2f3241',
-    //   symbolColor: '#74b1be'
-    // },,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      devTools: true
-    }
-  });
-  // opening the devtools on lunch
-  win.webContents.openDevTools();
-  win.on('closed', () => {
-    win = null;
-  });
-  // win.loadURL(`file://${__dirname}/dist/loading.html`);
+    // setting up the window
+    win = new BrowserWindow({
+        icon: `${__dirname}/dist/images/small.ico`,
+        // titleBarStyle: 'hidden',
+        // titleBarOverlay: {
+        //   color: '#2f3241',
+        //   symbolColor: '#74b1be'
+        // },,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            devTools: true
+        }
+    });
+    // opening the devtools on lunch
+    win.webContents.openDevTools();
+    win.on('closed', () => {
+        win = null;
+    });
+    // win.loadURL(`file://${__dirname}/dist/loading.html`);
 
-  win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
-  return win;
+    win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
+    return win;
 }
 
 
 
 
+app.whenReady().then(() => {
+    tray = new Tray(`${__dirname}/dist/images/small.ico`)
+    const contextMenu = Menu.buildFromTemplate([{
+            label: 'Fermer l\'application',
+            click() {
+                console.log("app closed from the tray")
+                app.quit();
+            }
+        },
 
+    ])
+    tray.setToolTip('Demo Electron')
+    tray.setContextMenu(contextMenu)
+})
 
-app.on('ready', function () {
-  createDefaultWindow()
-  console.log(app.getVersion())
-  autoUpdater.checkForUpdatesAndNotify()
+app.on('ready', function() {
+    createDefaultWindow()
+    console.log(app.getVersion())
+    autoUpdater.checkForUpdatesAndNotify()
 });
 
 // Handle the window closure action
 app.on('window-all-closed', () => {
-  app.quit();
+    app.quit();
 });
 
 
@@ -76,48 +91,48 @@ app.on('window-all-closed', () => {
 /******************************************* */
 /************** AUTO UPDATER *************** */
 autoUpdater.on('checking-for-update', () => {
-  sendStatusToWindow('Checking for update...');
-  win.loadURL(`file://${__dirname}/dist/loading.html`);
+    sendStatusToWindow('Checking for update...');
+    win.loadURL(`file://${__dirname}/dist/loading.html`);
 })
 autoUpdater.on('update-available', (info) => {
-  sendStatusToWindow('Update available.');
-  win.loadURL(`file://${__dirname}/dist/version.html`);
+    sendStatusToWindow('Update available.');
+    win.loadURL(`file://${__dirname}/dist/version.html`);
 })
 autoUpdater.on('update-not-available', (info) => {
-  sendStatusToWindow('Update not available.');
-  win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
+    sendStatusToWindow('Update not available.');
+    win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
 })
 autoUpdater.on('error', (err) => {
-  sendStatusToWindow('Error in auto-updater. ' + err);
-  win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
+    sendStatusToWindow('Error in auto-updater. ' + err);
+    win.loadURL(`file://${__dirname}/dist/electronDemo/index.html`);
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  sendStatusToWindow(log_message);
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    sendStatusToWindow(log_message);
 })
 
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Restart', 'Later'],
-    title: 'Application Update',
-    message: process.platform === 'win32' ? releaseNotes : releaseName,
-    detail: 'A new version has been downloaded. Restart the application to apply the updates.'
-  }
+    const dialogOpts = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'Application Update',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+    }
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall()
-  })
+    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall()
+    })
 })
 
 // Sanding the current version of the application when requested by the angular application via the 'get-version' listener
 ipcMain.on('get-version', (event, arg) => {
-  console.log("the request made with this comment", arg)
-  event.sender.send('get-version-replay', app.getVersion());
+    console.log("the request made with this comment", arg)
+    event.sender.send('get-version-replay', app.getVersion());
 });
 
 /**
