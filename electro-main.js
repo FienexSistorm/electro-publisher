@@ -1,7 +1,7 @@
 const {
   app,
   BrowserWindow,
-  Menu,
+  Menu,dialog,
   ipcMain
 } = require('electron');
 const log = require('electron-log');
@@ -19,32 +19,6 @@ log.info('App starting...');
 
 // Declaring the window object
 let win;
-let loadingWin;
-//TODO: Create another window just for loading that will be closed when the mainwindow is rendered
-// you can simulate this effect by setting a timeout to initiate the second window
-// template :: menu items
-let template = [{
-    label: "Quit",
-    click() {
-      console.log("Quit");
-      app.quit();
-    }
-  },
-  {
-    label: "Reluanch",
-    click() {
-      console.log("Relaunched");
-      app.relaunch();
-    }
-  },
-  {
-    label: "Exit",
-    click() {
-      console.log("Exit");
-      app.exit();
-    }
-  }
-];
 
 
 /**@method sendStatusToWindow to push messages to the window (the interface html page) */
@@ -58,13 +32,11 @@ function createDefaultWindow() {
   // setting up the window
   win = new BrowserWindow({
     icon: "images/icon.svg",
-    modal: true,
     // titleBarStyle: 'hidden',
     // titleBarOverlay: {
     //   color: '#2f3241',
     //   symbolColor: '#74b1be'
     // },,
-    parent: loadingWin,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -83,39 +55,12 @@ function createDefaultWindow() {
 }
 
 
-function createLoadingWindow() {
-  // setting up the window
-  loadingWin = new BrowserWindow({
-    icon: "images/icon.svg",
-    width: 500,
-    height: 250,
-    frame:false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    }
-  });
-  loadingWin.on('closed', () => {
-    loadingWin = null;
-  });
-
-  loadingWin.loadURL(`file://${__dirname}/dist/loading.html`);
-  return loadingWin;
-}
-
 
 
 
 
 app.on('ready', function () {
-
-  createLoadingWindow();
-  setTimeout(() => {
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-    createDefaultWindow()
-  }, 5000);
-
+  createDefaultWindow()
   console.log(app.getVersion())
   autoUpdater.checkForUpdatesAndNotify()
 });
@@ -154,11 +99,20 @@ autoUpdater.on('download-progress', (progressObj) => {
   sendStatusToWindow(log_message);
 })
 
-autoUpdater.on('update-downloaded', (info) => {
-  sendStatusToWindow('Update downloaded');
-  autoUpdater.quitAndInstall(true, true);
-});
 
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart', 'Later'],
+    title: 'Application Update',
+    message: process.platform === 'win32' ? releaseNotes : releaseName,
+    detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+  }
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall()
+  })
+})
 
 // Sanding the current version of the application when requested by the angular application via the 'get-version' listener
 ipcMain.on('get-version', (event, arg) => {

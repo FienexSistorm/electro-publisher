@@ -69,7 +69,8 @@
       "allowToChangeInstallationDirectory": false,
       "oneClick": true,
       "perMachine": false,
-      "installerLanguages": "fr-FR"
+      "installerLanguages": "fr-FR",
+      "deleteAppDataOnUninstall": true
     }
   }
 }
